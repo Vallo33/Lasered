@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lasered</title>
+  <link rel="stylesheet" type="text/css" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Lasered</h1>
+    <div class="subtitle">Focus Enhancement Tool</div>
+    <div id="modes-container"></div>
+    <button id="add-mode" class="button-primary">Create Custom Mode</button>
+    <div id="custom-sites">
+      <h2>Custom Blocked Sites</h2>
+      <div class="input-group">
+        <input type="text" id="new-site" placeholder="Enter website to block (e.g., facebook.com)">
+        <button id="add-site" class="button-secondary">Add</button>
+      </div>
+      <ul id="blocked-sites-list"></ul>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
