@@ -1,32 +1,17 @@
-function checkAndBlockSite() {
-    chrome.storage.local.get(['activeMode', 'modes', 'customSites'], (data) => {
-        if (!data.activeMode) return;
+function simplifyUrl(url) {
+    let simple = url.replace(/^https?:\/\//, '');
+    simple = simple.replace(/^www\./, '');
+    simple = simple.replace(/\/.*$/, '');
+    return simple;
+}
 
-        const currentMode = data.modes[data.activeMode];
-        if (!currentMode) return;
-
-        const blockedSites = [...currentMode.sites, ...(data.customSites || [])];
-        
-        // More permissive matching
-        const isBlocked = blockedSites.some(pattern => {
-            const domain = pattern
-                .replace('*://*.', '')
-                .replace('/*', '')
-                .replace('*', '');
-            return window.location.hostname.includes(domain);
-        });
-
-        if (isBlocked) {
-            // Stop any ongoing navigation
-            window.stop();
-            
-            // Clear existing content
-            document.head.innerHTML = '';
-            document.body.innerHTML = '';
-
-            // Add our styles
-            const style = document.createElement('style');
-            style.textContent = `
+function createBlockingPage() {
+    // Create a new HTML document
+    document.documentElement.innerHTML = `
+    <html>
+        <head>
+            <title>Site Blocked - Lasered</title>
+            <style>
                 body {
                     margin: 0;
                     padding: 0;
@@ -86,41 +71,102 @@ function checkAndBlockSite() {
                     background-color: #4A90E2;
                     transition: width 2s linear;
                 }
-            `;
-            document.head.appendChild(style);
-
-            // Add modal content
-            document.body.innerHTML = `
-                <div class="modal">
-                    <div class="logo">Lasered</div>
-                    <h1 class="title">Stay Focused!</h1>
-                    <p class="message">
-                        This site is currently blocked to help you maintain your focus.
-                    </p>
-                    <p class="redirect-message">
-                        Redirecting to Google in 2 seconds...
-                    </p>
-                    <div class="progress-bar">
-                        <div class="progress"></div>
-                    </div>
+            </style>
+        </head>
+        <body>
+            <div class="modal">
+                <div class="logo">Lasered</div>
+                <h1 class="title">Stay Focused!</h1>
+                <p class="message">
+                    This site is currently blocked to help you maintain your focus.
+                </p>
+                <p class="redirect-message">
+                    Redirecting to Google in 2 seconds...
+                </p>
+                <div class="progress-bar">
+                    <div class="progress"></div>
                 </div>
-            `;
+            </div>
+        </body>
+    </html>`;
 
-            // Animate progress bar
-            setTimeout(() => {
-                document.querySelector('.progress').style.width = '100%';
-            }, 100);
+    // Start progress bar animation
+    requestAnimationFrame(() => {
+        const progress = document.querySelector('.progress');
+        if (progress) {
+            progress.style.width = '100%';
+        }
+    });
 
-            // Force the redirect after animation
-            setTimeout(() => {
-                window.location.replace('https://www.google.com');
-            }, 2000);
+    // Redirect after delay
+    setTimeout(() => {
+        window.location.replace('https://www.google.com');
+    }, 2000);
+}
+
+function checkAndBlockSite() {
+    console.log('Checking if site should be blocked...');
+    
+    chrome.storage.local.get(['activeMode', 'modes', 'customSites'], (data) => {
+        if (!data.activeMode) {
+            console.log('No active mode');
+            return;
+        }
+
+        const currentMode = data.modes[data.activeMode];
+        if (!currentMode) {
+            console.log('Mode not found');
+            return;
+        }
+
+        // Get all blocked sites
+        const allBlockedSites = [
+            ...(currentMode.sites || []),
+            ...(data.customSites || [])
+        ].map(pattern => pattern
+            .replace('*://*.', '')
+            .replace('/*', '')
+            .replace('*', '')
+        );
+
+        console.log('All blocked sites:', allBlockedSites);
+
+        // Get current URL
+        const currentUrl = simplifyUrl(window.location.href);
+        console.log('Current URL (simplified):', currentUrl);
+
+        // Check if current URL matches any blocked pattern
+        const isBlocked = allBlockedSites.some(pattern => {
+            console.log('Checking pattern:', pattern, 'against:', currentUrl);
+            return currentUrl.includes(pattern);
+        });
+
+        console.log('Is site blocked?', isBlocked);
+
+        if (isBlocked) {
+            console.log('Blocking site...');
+            // Stop the page from loading further
+            window.stop();
+            // Create our blocking page
+            createBlockingPage();
         }
     });
 }
 
-// Run checks at different stages
+// Run as early as possible
+if (document.documentElement) {
+    checkAndBlockSite();
+}
+
+// Fallback for when document isn't ready
 document.addEventListener('DOMContentLoaded', checkAndBlockSite);
-window.addEventListener('load', checkAndBlockSite);
-// Also run immediately
-checkAndBlockSite();
+
+// Handle dynamic navigation
+let lastUrl = location.href;
+new MutationObserver(() => {
+    const url = location.href;
+    if (url !== lastUrl) {
+        lastUrl = url;
+        checkAndBlockSite();
+    }
+}).observe(document, { subtree: true, childList: true });
