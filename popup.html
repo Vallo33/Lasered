@@ -10,6 +10,69 @@
     <div class="subtitle">Focus Enhancement Tool</div>
     <div id="modes-container"></div>
     <button id="add-mode" class="button-primary">Create Custom Mode</button>
+    
+    <!-- Custom Mode Modal -->
+    <div id="custom-mode-modal" class="modal">
+      <div class="modal-content">
+        <h2>Create Custom Mode</h2>
+        <form id="custom-mode-form">
+          <div class="form-group">
+            <label for="mode-name">Mode Name</label>
+            <input type="text" id="mode-name" required placeholder="e.g., Work Focus">
+          </div>
+          
+          <div class="form-group">
+            <label>Active Days</label>
+            <div class="days-selector">
+              <label><input type="checkbox" value="0"> Sun</label>
+              <label><input type="checkbox" value="1"> Mon</label>
+              <label><input type="checkbox" value="2"> Tue</label>
+              <label><input type="checkbox" value="3"> Wed</label>
+              <label><input type="checkbox" value="4"> Thu</label>
+              <label><input type="checkbox" value="5"> Fri</label>
+              <label><input type="checkbox" value="6"> Sat</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Active Hours</label>
+            <div class="time-selector">
+              <input type="time" id="start-time" required>
+              <span>to</span>
+              <input type="time" id="end-time" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Block These Sites</label>
+            <div class="sites-selector">
+              <label><input type="checkbox" value="facebook.com"> Facebook</label>
+              <label><input type="checkbox" value="youtube.com"> YouTube</label>
+              <label><input type="checkbox" value="twitter.com"> Twitter</label>
+              <label><input type="checkbox" value="instagram.com"> Instagram</label>
+              <label><input type="checkbox" value="tiktok.com"> TikTok</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Custom Sites to Block</label>
+            <div id="custom-sites-list">
+              <div class="custom-site-input">
+                <input type="text" placeholder="Enter website URL">
+                <button type="button" class="button-secondary remove-site">×</button>
+              </div>
+            </div>
+            <button type="button" id="add-custom-site" class="button-secondary">+ Add Site</button>
+          </div>
+
+          <div class="modal-buttons">
+            <button type="button" class="button-secondary" id="cancel-mode">Cancel</button>
+            <button type="submit" class="button-primary">Save Mode</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <div id="custom-sites">
       <h2>Custom Blocked Sites</h2>
       <div class="input-group">
