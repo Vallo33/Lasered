@@ -4,7 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
   loadCustomSites();
   
   // Add event listeners
-  document.getElementById('add-mode').addEventListener('click', showCustomModeModal);
+  document.getElementById('add-mode').addEventListener('click', () => {
+    showCustomModeModal();
+  });
   document.getElementById('add-site').addEventListener('click', addCustomSite);
   document.getElementById('custom-mode-form').addEventListener('submit', saveCustomMode);
   document.getElementById('cancel-mode').addEventListener('click', hideCustomModeModal);
@@ -14,33 +16,93 @@ document.addEventListener('DOMContentLoaded', () => {
   setupRemoveButtons();
 });
 
-function showCustomModeModal() {
+let currentEditingModeId = null;
+
+function showCustomModeModal(modeId = null) {
   const modal = document.getElementById('custom-mode-modal');
+  const form = document.getElementById('custom-mode-form');
+  const title = modal.querySelector('h2');
+  const submitButton = form.querySelector('button[type="submit"]');
+
+  // Reset form
+  form.reset();
+  currentEditingModeId = modeId;
+
+  if (modeId) {
+    // Edit mode
+    title.textContent = 'Edit Mode';
+    submitButton.textContent = 'Save Changes';
+    
+    // Load existing mode data
+    chrome.storage.local.get(['modes'], (data) => {
+      const mode = data.modes[modeId];
+      
+      // Fill form with existing data
+      document.getElementById('mode-name').value = mode.name;
+      
+      // Set time inputs
+      document.getElementById('start-time').value = mode.schedule.startTime;
+      document.getElementById('end-time').value = mode.schedule.endTime;
+      
+      // Set days
+      const dayCheckboxes = document.querySelectorAll('.days-selector input');
+      dayCheckboxes.forEach(checkbox => {
+        checkbox.checked = mode.schedule.days.includes(parseInt(checkbox.value));
+      });
+      
+      // Set blocked sites
+      const siteCheckboxes = document.querySelectorAll('.sites-selector input');
+      siteCheckboxes.forEach(checkbox => {
+        const pattern = `*://*.${checkbox.value}/*`;
+        checkbox.checked = mode.sites.includes(pattern);
+      });
+      
+      // Set custom sites
+      const customSitesList = document.getElementById('custom-sites-list');
+      customSitesList.innerHTML = ''; // Clear existing
+      
+      mode.sites.forEach(site => {
+        if (!site.includes('facebook.com') && 
+            !site.includes('youtube.com') && 
+            !site.includes('twitter.com') && 
+            !site.includes('instagram.com') && 
+            !site.includes('tiktok.com')) {
+          const cleanSite = site.replace(/\*:\/\/\*\./g, '').replace(/\/\*/g, '');
+          addCustomSiteInput(cleanSite);
+        }
+      });
+    });
+  } else {
+    // Create mode
+    title.textContent = 'Create Custom Mode';
+    submitButton.textContent = 'Save Mode';
+    
+    // Clear custom sites list
+    const customSitesList = document.getElementById('custom-sites-list');
+    customSitesList.innerHTML = `
+      <div class="custom-site-input">
+        <input type="text" placeholder="Enter website URL">
+        <button type="button" class="button-secondary remove-site">×</button>
+      </div>
+    `;
+  }
+
   modal.classList.add('show');
+  setupRemoveButtons();
 }
 
 function hideCustomModeModal() {
   const modal = document.getElementById('custom-mode-modal');
   modal.classList.remove('show');
-  // Reset form
-  document.getElementById('custom-mode-form').reset();
-  // Reset custom sites list
-  const customSitesList = document.getElementById('custom-sites-list');
-  customSitesList.innerHTML = `
-    <div class="custom-site-input">
-      <input type="text" placeholder="Enter website URL">
-      <button type="button" class="button-secondary remove-site">×</button>
-    </div>
-  `;
-  setupRemoveButtons();
+  currentEditingModeId = null;
 }
 
-function addCustomSiteInput() {
+function addCustomSiteInput(value = '') {
   const customSitesList = document.getElementById('custom-sites-list');
   const newInput = document.createElement('div');
   newInput.className = 'custom-site-input';
   newInput.innerHTML = `
-    <input type="text" placeholder="Enter website URL">
+    <input type="text" placeholder="Enter website URL" value="${value}">
     <button type="button" class="button-secondary remove-site">×</button>
   `;
   customSitesList.appendChild(newInput);
@@ -81,7 +143,7 @@ function saveCustomMode(e) {
   const sites = [...presetSites, ...customSites];
 
   // Create mode object
-  const modeId = 'custom-' + Date.now();
+  const modeId = currentEditingModeId || 'custom-' + Date.now();
   const newMode = {
     name,
     sites,
@@ -126,28 +188,42 @@ function createModeElement(id, mode, isActive) {
   const description = document.createElement('p');
   description.className = 'mode-description';
   description.textContent = mode.description;
+
+  const buttonContainer = document.createElement('div');
+  buttonContainer.className = 'mode-buttons';
   
-  const button = document.createElement('button');
-  button.className = `button-toggle ${isActive ? 'active' : ''}`;
-  button.textContent = isActive ? 'Disable' : 'Enable';
-  button.onclick = () => toggleMode(id, isActive);
+  const toggleButton = document.createElement('button');
+  toggleButton.className = `button-toggle ${isActive ? 'active' : ''}`;
+  toggleButton.textContent = isActive ? 'Disable' : 'Enable';
+  toggleButton.onclick = () => toggleMode(id, isActive);
   
-  // Add delete button for custom modes
+  buttonContainer.appendChild(toggleButton);
+
+  // Add edit and delete buttons for custom modes
   if (id.startsWith('custom-')) {
+    const editButton = document.createElement('button');
+    editButton.className = 'button-secondary';
+    editButton.textContent = 'Edit';
+    editButton.onclick = (e) => {
+      e.stopPropagation();
+      showCustomModeModal(id);
+    };
+
     const deleteButton = document.createElement('button');
     deleteButton.className = 'button-secondary';
     deleteButton.textContent = 'Delete';
-    deleteButton.style.marginLeft = '8px';
     deleteButton.onclick = (e) => {
       e.stopPropagation();
       deleteMode(id);
     };
-    button.parentElement?.appendChild(deleteButton);
+
+    buttonContainer.appendChild(editButton);
+    buttonContainer.appendChild(deleteButton);
   }
   
   div.appendChild(title);
   div.appendChild(description);
-  div.appendChild(button);
+  div.appendChild(buttonContainer);
   
   return div;
 }
@@ -159,18 +235,20 @@ function toggleMode(modeId, isActive) {
 }
 
 function deleteMode(modeId) {
-  chrome.storage.local.get(['modes', 'activeMode'], (data) => {
-    const modes = { ...data.modes };
-    delete modes[modeId];
-    
-    // If the deleted mode was active, deactivate it
-    const newActiveMode = data.activeMode === modeId ? null : data.activeMode;
-    
-    chrome.storage.local.set({
-      modes,
-      activeMode: newActiveMode
-    }, loadModes);
-  });
+  if (confirm('Are you sure you want to delete this mode?')) {
+    chrome.storage.local.get(['modes', 'activeMode'], (data) => {
+      const modes = { ...data.modes };
+      delete modes[modeId];
+      
+      // If the deleted mode was active, deactivate it
+      const newActiveMode = data.activeMode === modeId ? null : data.activeMode;
+      
+      chrome.storage.local.set({
+        modes,
+        activeMode: newActiveMode
+      }, loadModes);
+    });
+  }
 }
 
 function addCustomSite() {
