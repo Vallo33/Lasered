@@ -101,7 +101,7 @@ function showCustomModeModal(modeId = null) {
         customSitesList.innerHTML = `
             <div class="custom-site-input">
                 <input type="text" placeholder="Enter website URL">
-                <button type="button" class="button-secondary remove-site">×</button>
+                <button type="button" class="remove-site-button">×</button>
             </div>
         `;
     }
@@ -112,8 +112,15 @@ function showCustomModeModal(modeId = null) {
 
 function hideCustomModeModal() {
     const modal = document.getElementById('custom-mode-modal');
-    modal.classList.remove('show');
-    currentEditingModeId = null;
+    if (modal) {
+        modal.classList.remove('show');
+        // Reset form
+        const form = document.getElementById('custom-mode-form');
+        if (form) {
+            form.reset();
+        }
+        currentEditingModeId = null;
+    }
 }
 
 function addCustomSiteInput(value = '') {
@@ -122,14 +129,14 @@ function addCustomSiteInput(value = '') {
     newInput.className = 'custom-site-input';
     newInput.innerHTML = `
         <input type="text" placeholder="Enter website URL" value="${typeof value === 'string' ? value : ''}">
-        <button type="button" class="button-secondary remove-site">×</button>
+        <button type="button" class="remove-site-button">×</button>
     `;
     customSitesList.appendChild(newInput);
     setupRemoveButtons();
 }
 
 function setupRemoveButtons() {
-    document.querySelectorAll('.remove-site').forEach(button => {
+    document.querySelectorAll('.remove-site-button').forEach(button => {
         button.onclick = function() {
             this.parentElement.remove();
         };
@@ -205,7 +212,7 @@ function deleteMode(modeId) {
             <p>Are you sure you want to delete this mode? This action cannot be undone.</p>
             <div class="modal-buttons">
                 <button class="button-secondary" id="cancel-delete">Cancel</button>
-                <button class="button-primary" id="confirm-delete">Delete</button>
+                <button class="delete-button" id="confirm-delete">Delete</button>
             </div>
         </div>
     `;
@@ -270,7 +277,6 @@ function createModeElement(id, mode, isActive) {
     
     buttonContainer.appendChild(toggleButton);
 
-    // Add edit and delete buttons for custom modes
     if (id.startsWith('custom-')) {
         const editButton = document.createElement('button');
         editButton.className = 'button-secondary';
@@ -281,7 +287,7 @@ function createModeElement(id, mode, isActive) {
         };
 
         const deleteButton = document.createElement('button');
-        deleteButton.className = 'button-secondary';
+        deleteButton.className = 'delete-button';
         deleteButton.textContent = 'Delete';
         deleteButton.onclick = (e) => {
             e.stopPropagation();
@@ -336,11 +342,11 @@ function loadCustomSites() {
             
             li.innerHTML = `
                 <span>${displayUrl}</span>
-                <button class="button-secondary remove-site" aria-label="Remove site">×</button>
+                <button class="remove-site-button">×</button>
             `;
             
             // Add remove button functionality
-            const removeButton = li.querySelector('.remove-site');
+            const removeButton = li.querySelector('.remove-site-button');
             removeButton.onclick = () => {
                 const updatedSites = customSites.filter(s => s !== site);
                 chrome.storage.local.set({ customSites: updatedSites }, loadCustomSites);
