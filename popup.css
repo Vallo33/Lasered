@@ -236,3 +236,55 @@ input {
 .button-secondary:hover {
   opacity: 0.9;
 }
+.confirmation-dialog {
+  max-width: 300px;
+  text-align: center;
+}
+
+.confirmation-dialog h3 {
+  color: var(--primary-color);
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.confirmation-dialog p {
+  margin-bottom: 20px;
+  color: var(--text-color);
+  line-height: 1.4;
+}
+
+.confirmation-dialog .modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.confirmation-dialog .button-primary {
+  background-color: #dc3545;
+  width: auto;
+  margin: 0;
+}
+
+.confirmation-dialog .button-secondary {
+  background-color: var(--secondary-color);
+}
+.schedule-toggle {
+  margin-bottom: 15px;
+}
+
+.schedule-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.schedule-toggle input[type="checkbox"] {
+  margin: 0;
+}
+
+#schedule-settings {
+  border-left: 2px solid var(--primary-color);
+  padding-left: 15px;
+  margin-left: 5px;
+}

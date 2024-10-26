@@ -20,26 +20,37 @@
             <label for="mode-name">Mode Name</label>
             <input type="text" id="mode-name" required placeholder="e.g., Work Focus">
           </div>
-          
-          <div class="form-group">
-            <label>Active Days</label>
-            <div class="days-selector">
-              <label><input type="checkbox" value="0"> Sun</label>
-              <label><input type="checkbox" value="1"> Mon</label>
-              <label><input type="checkbox" value="2"> Tue</label>
-              <label><input type="checkbox" value="3"> Wed</label>
-              <label><input type="checkbox" value="4"> Thu</label>
-              <label><input type="checkbox" value="5"> Fri</label>
-              <label><input type="checkbox" value="6"> Sat</label>
-            </div>
-          </div>
 
           <div class="form-group">
-            <label>Active Hours</label>
-            <div class="time-selector">
-              <input type="time" id="start-time" required>
-              <span>to</span>
-              <input type="time" id="end-time" required>
+            <div class="schedule-toggle">
+              <label>
+                <input type="checkbox" id="enable-schedule"> 
+                Enable Schedule (Optional)
+              </label>
+            </div>
+            
+            <div id="schedule-settings" style="display: none;">
+              <div class="form-group">
+                <label>Active Days</label>
+                <div class="days-selector">
+                  <label><input type="checkbox" value="0"> Sun</label>
+                  <label><input type="checkbox" value="1"> Mon</label>
+                  <label><input type="checkbox" value="2"> Tue</label>
+                  <label><input type="checkbox" value="3"> Wed</label>
+                  <label><input type="checkbox" value="4"> Thu</label>
+                  <label><input type="checkbox" value="5"> Fri</label>
+                  <label><input type="checkbox" value="6"> Sat</label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Active Hours</label>
+                <div class="time-selector">
+                  <input type="time" id="start-time">
+                  <span>to</span>
+                  <input type="time" id="end-time">
+                </div>
+              </div>
             </div>
           </div>
 
