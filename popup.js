@@ -99,11 +99,17 @@ function showCustomModeModal(modeId = null) {
         // Reset custom sites list
         const customSitesList = document.getElementById('custom-sites-list');
         customSitesList.innerHTML = `
-            <div class="custom-site-input">
-                <input type="text" placeholder="Enter website URL">
-                <button type="button" class="remove-site-button">×</button>
-            </div>
-        `;
+        <div class="custom-site-input">
+            <input type="text" placeholder="Enter website URL">
+            <button type="button" class="remove-site-button">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.5 4.5H13.5" stroke="currentColor" stroke-linecap="round"/>
+                    <path d="M5.5 4.5V3.5C5.5 2.94772 5.94772 2.5 6.5 2.5H9.5C10.0523 2.5 10.5 2.94772 10.5 3.5V4.5" stroke="currentColor" stroke-linecap="round"/>
+                    <path d="M12.5 4.5L11.5 13.5H4.5L3.5 4.5" stroke="currentColor" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    `;
     }
 
     modal.classList.add('show');
@@ -129,7 +135,13 @@ function addCustomSiteInput(value = '') {
     newInput.className = 'custom-site-input';
     newInput.innerHTML = `
         <input type="text" placeholder="Enter website URL" value="${typeof value === 'string' ? value : ''}">
-        <button type="button" class="remove-site-button">×</button>
+        <button type="button" class="remove-site-button" aria-label="Remove site">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2.5 4.5H13.5" stroke="currentColor" stroke-linecap="round"/>
+                <path d="M5.5 4.5V3.5C5.5 2.94772 5.94772 2.5 6.5 2.5H9.5C10.0523 2.5 10.5 2.94772 10.5 3.5V4.5" stroke="currentColor" stroke-linecap="round"/>
+                <path d="M12.5 4.5L11.5 13.5H4.5L3.5 4.5" stroke="currentColor" stroke-linecap="round"/>
+            </svg>
+        </button>
     `;
     customSitesList.appendChild(newInput);
     setupRemoveButtons();
@@ -342,7 +354,13 @@ function loadCustomSites() {
             
             li.innerHTML = `
                 <span>${displayUrl}</span>
-                <button class="remove-site-button">×</button>
+                <button class="remove-site-button">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2.5 4.5H13.5" stroke="currentColor" stroke-linecap="round"/>
+                        <path d="M5.5 4.5V3.5C5.5 2.94772 5.94772 2.5 6.5 2.5H9.5C10.0523 2.5 10.5 2.94772 10.5 3.5V4.5" stroke="currentColor" stroke-linecap="round"/>
+                        <path d="M12.5 4.5L11.5 13.5H4.5L3.5 4.5" stroke="currentColor" stroke-linecap="round"/>
+                    </svg>
+                </button>
             `;
             
             // Add remove button functionality

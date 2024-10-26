@@ -158,7 +158,6 @@ input {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
   padding: 0;
   transition: all 0.2s ease;
 }
@@ -166,6 +165,12 @@ input {
 .remove-site-button:hover {
   background-color: var(--danger-color);
   color: white;
+}
+
+/* Add this if you need to adjust the SVG size */
+.remove-site-button svg {
+  width: 16px;
+  height: 16px;
 }
 
 .modal {
