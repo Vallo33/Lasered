@@ -349,3 +349,30 @@ input {
   color: var(--text-color);
   line-height: 1.4;
 }
+/* Add these to your popup.css */
+.input-error {
+  border-color: var(--danger-color) !important;
+}
+
+.tooltip {
+  position: absolute;
+  background-color: #ff5757;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-top: 4px;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+}
+
+.tooltip.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.custom-site-input {
+  position: relative;  /* For tooltip positioning */
+}

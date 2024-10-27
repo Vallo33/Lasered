@@ -1,5 +1,61 @@
 let currentEditingModeId = null;
 
+// Add these utility functions
+function isValidUrl(url) {
+    // Remove common prefixes and suffixes users might enter
+    url = url.toLowerCase()
+        .replace(/^(https?:\/\/)?(www\.)?/i, '')
+        .replace(/\/.*$/, '');
+    
+    // Basic domain validation
+    const domainRegex = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}$/;
+    
+    // Common invalid inputs
+    const invalidInputs = [
+        'http', 'https', 'www', '',
+        'example.com', 'domain.com', 'website.com'
+    ];
+    
+    return domainRegex.test(url) && !invalidInputs.includes(url);
+}
+
+function showError(input, message) {
+    input.classList.add('input-error');
+    
+    // Remove any existing tooltip
+    const existingTooltip = input.parentElement.querySelector('.tooltip');
+    if (existingTooltip) {
+        existingTooltip.remove();
+    }
+    
+    // Create new tooltip
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip';
+    tooltip.textContent = message;
+    input.parentElement.appendChild(tooltip);
+    
+    // Show tooltip with animation
+    setTimeout(() => tooltip.classList.add('show'), 10);
+    
+    // Remove error state after 3 seconds
+    setTimeout(() => {
+        input.classList.remove('input-error');
+        tooltip.classList.remove('show');
+        setTimeout(() => tooltip.remove(), 200);
+    }, 3000);
+}
+
+function validateInput(input, showErrors = false) {
+    const value = input.value.trim();
+    if (!value) return false;
+    
+    const isValid = isValidUrl(value);
+    if (!isValid && showErrors) {
+        showError(input, 'Please enter a valid domain (e.g., "facebook.com")');
+    }
+    return isValid;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Load and display modes
     loadModes();
@@ -143,6 +199,11 @@ function addCustomSiteInput(value = '') {
             </svg>
         </button>
     `;
+    
+    // Add input validation
+    const input = newInput.querySelector('input');
+    input.addEventListener('input', () => validateInput(input, false));
+    
     customSitesList.appendChild(newInput);
     setupRemoveButtons();
 }
@@ -160,6 +221,12 @@ function saveCustomMode(e) {
 
     // Get form values
     const name = document.getElementById('mode-name').value;
+    if (!name.trim()) {
+        const input = document.getElementById('mode-name');
+        showError(input, 'Please enter a mode name');
+        return;
+    }
+
     const isScheduleEnabled = document.getElementById('enable-schedule').checked;
     
     let schedule = null;
@@ -169,7 +236,16 @@ function saveCustomMode(e) {
         const days = Array.from(document.querySelectorAll('.days-selector input:checked'))
             .map(checkbox => parseInt(checkbox.value));
 
-        // Only add schedule if both time and days are selected
+        if (isScheduleEnabled && (!startTime || !endTime)) {
+            showError(document.getElementById('start-time'), 'Please set both start and end times');
+            return;
+        }
+
+        if (isScheduleEnabled && days.length === 0) {
+            showError(document.querySelector('.days-selector'), 'Please select at least one day');
+            return;
+        }
+
         if (startTime && endTime && days.length > 0) {
             schedule = {
                 days,
@@ -183,11 +259,28 @@ function saveCustomMode(e) {
     const presetSites = Array.from(document.querySelectorAll('.sites-selector input:checked'))
         .map(checkbox => `*://*.${checkbox.value}/*`);
     
-    // Get custom sites
+    // Validate custom sites
+    let hasInvalidUrls = false;
     const customSites = Array.from(document.querySelectorAll('#custom-sites-list input'))
-        .map(input => input.value.trim())
-        .filter(url => url)
+        .map(input => {
+            const url = input.value.trim();
+            if (url && !validateInput(input, true)) {
+                hasInvalidUrls = true;
+            }
+            return url;
+        })
+        .filter(url => url && isValidUrl(url))
         .map(url => `*://*.${url}/*`);
+
+    if (hasInvalidUrls) {
+        return;
+    }
+
+    // Check if at least one site is selected or added
+    if (presetSites.length === 0 && customSites.length === 0) {
+        showError(document.querySelector('.sites-selector'), 'Please select or add at least one site to block');
+        return;
+    }
 
     // Combine all blocked sites
     const sites = [...presetSites, ...customSites];
@@ -327,7 +420,14 @@ function addCustomSite() {
     const input = document.getElementById('new-site');
     const url = input.value.trim();
     
-    if (!url) return;
+    if (!url) {
+        showError(input, 'Please enter a website URL');
+        return;
+    }
+
+    if (!validateInput(input, true)) {
+        return;
+    }
     
     chrome.storage.local.get(['customSites'], (data) => {
         const customSites = [...(data.customSites || []), `*://*.${url}/*`];
