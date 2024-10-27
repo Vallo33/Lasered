@@ -349,6 +349,9 @@ input {
   color: var(--text-color);
   line-height: 1.4;
 }
+.confirmation-dialog .modal-buttons {
+  justify-content: center;
+}
 /* Add these to your popup.css */
 .input-error {
   border-color: var(--danger-color) !important;
